@@ -51,7 +51,7 @@ AppleTVAccessory.prototype.atvConnect = function () {
     var that = this;
     if (this.checkATVTimer != null)
     {   
-        clearInterval(this.checkATVTimer);
+        //clearInterval(this.checkATVTimer);
         this.checkATVTimer = null;
         that.log("Clearerd Timer Interval");
     }
@@ -101,25 +101,32 @@ AppleTVAccessory.prototype.reconnectTimer = function  ()
 
 AppleTVAccessory.prototype.updateStatus = function () {
     var that = this;
+    
+    //if (this.checkATVTimer == null)
+    //{
+       
+        //that.log("Timer Interval null - Setting up Refresh");
+        this.checkATVTimer = setTimeout(function () {
 
-    if (this.checkATVTimer == null)
-    {
-        that.log("Timer Interval null - Setting up Refresh");
-        this.checkATVTimer = setInterval(function () {
-
-            this.updateRate = 5000;
 
             if(!that.skipCheck) {
                 that.checkATVStatus();
+                
                 //that.updateStatus();
             } else {
                 that.skipCheck = false;
                 //that.updateStatus();
-            }   
+            }
+            
+            //clearInterval(this.checkATVTimer);
+            //this.checkATVTimer = null;
+            that.updateStatus();
     
         }, this.updateRate);
-        that.log("Set Timer Interval");
-    }
+
+        //that.log("Set Timer Interval");
+    //}
+   
 
     // this.checkATVTimer = setTimeout(function () {
         
@@ -142,8 +149,11 @@ AppleTVAccessory.prototype.checkATVStatus = function () {
             }
         })
         .catch(function (error) {
-            that.log("ERROR: " + error.message);
-            that.log("ERROR Code: " + error.code);
+            if (error)
+            {
+                that.log("ERROR: " + error.message);
+                that.log("ERROR Code: " + error.code);
+            }   
             setTimeout(function () {
                 that.log("Trying to reconnect to AppleTV: " + that.name);
                 that.atvConnect();
@@ -162,8 +172,15 @@ AppleTVAccessory.prototype.updatePowerState = function (state) {
 
     if (this.atvService.getCharacteristic(Characteristic.Active).value != state) {
         this.log("UPDATING ATV POWER STATE: " + state);
+        this.updateRate = 15000;
+        this.skipCheck = true;
         this.atvService.updateCharacteristic(Characteristic.Active, state);
+
         //this.atvService.getCharacteristic(Characteristic.Active).updateValue(state);
+    }
+    else
+    {
+        this.updateRate = 5000;
     }
 }
 
